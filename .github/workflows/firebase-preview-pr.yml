@@ -1,13 +1,13 @@
-name: Deploy to Firebase Hosting on merge
-concurrency: production
-'on':
-  push:
-    branches:
-      - main
+name: Deploy to Firebase Preview Channel on pull request
+concurrency: development
+'on': pull_request
+env:
+  env_var: ${{ vars.ENV_CONTEXT_VAR }}
 jobs:
-  build_and_deploy:
+  build_and_preview:
+    if: '${{ github.event.pull_request.head.repo.full_name == github.repository }}'
     runs-on: ubuntu-latest
-    environment: production
+    environment: development
     steps:
       - uses: actions/checkout@v3
       - run: npm install && npm run build
@@ -15,5 +15,6 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_ALI_ROCK_STORE }}'
-          channelId: live
+          channelId: ${{ env.GITHUB_REF_NAME }}
+          expires: 1d
           projectId: ${{ vars.FIREBASE_PROJECT_ID }}
