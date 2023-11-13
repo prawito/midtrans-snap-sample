@@ -10,6 +10,7 @@ import './checkout.css';
 import useSnap from "../../hooks/useSnap";
 import { transactionCollection } from '../../utils/firebase';
 import { addDoc } from 'firebase/firestore/lite';
+import { MIDTRANS_API_URL, MIDTRANS_SERVER_AUTHORIZATION } from '../../utils/const';
 
 function Checkout() {
     const navigate = useNavigate();
@@ -59,8 +60,36 @@ function Checkout() {
             total: total
         };
 
-        const response = await addDoc(transactionCollection, transaction);
-        if (response.id) {
+        const transactionSnapshot = await addDoc(transactionCollection, transaction);
+        if (!transactionSnapshot || !transactionSnapshot.id) {
+            return alert("Error")
+        }
+        const transactionId = transactionSnapshot.id
+
+        const midtransResponse = await fetch(`${MIDTRANS_API_URL}/snap/v1/transactions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Authorization': MIDTRANS_SERVER_AUTHORIZATION,
+            },
+            body: JSON.stringify({
+                transaction_details: {
+                    order_id: transactionId,
+                    gross_amount: total
+                },
+                credit_card: {
+                    secure: "true"
+                },
+                customer_details: {
+                    first_name: customer.name,
+                    email: customer.email
+                },
+                item_details: products
+            })
+        }).then((res) => res.json())
+
+        if(response && response.status === 'success') {
             await localStorage.removeItem('cart')
             
             // midtrans snap start here
@@ -68,22 +97,22 @@ function Checkout() {
             snapEmbed(response.data.snap_token, 'snap-container', {
                 onSuccess: function (result) {
                     console.log('success', result);
-                    navigate(`/order-status?transaction_id=${response.data.id}`)
+                    navigate(`/order-status?transaction_id=${transactionId}`)
                     setSnapShow(false);
                 },
                 onPending: function(result){
                     console.log('pending', result);
-                    navigate(`/order-status?transaction_id=${response.data.id}`)
+                    navigate(`/order-status?transaction_id=${transactionId}`)
                     setSnapShow(false)
                 },
                 onClose: function () {
-                    navigate(`/order-status?transaction_id=${response.data.id}`)
+                    navigate(`/order-status?transaction_id=${transactionId}`)
                     setSnapShow(false)
                 }
             });
             // midtrans snap end here
-        } else {
-            alert("Error")
+        } else if(response && response.status === 'error') {
+            alert(response.errors.map((msg) => msg.msg).join(', '))
         }
     }
 
