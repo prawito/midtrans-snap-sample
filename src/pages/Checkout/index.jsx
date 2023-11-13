@@ -9,7 +9,7 @@ import { numberToRupiah } from "../../utils/number-to-rupiah";
 import './checkout.css';
 import useSnap from "../../hooks/useSnap";
 import { transactionCollection } from '../../utils/firebase';
-import { addDoc } from 'firebase/firestore/lite';
+import { addDoc, FieldValue } from 'firebase/firestore/lite';
 import { MIDTRANS_API_URL, MIDTRANS_SERVER_AUTHORIZATION } from '../../utils/const';
 
 function Checkout() {
@@ -45,6 +45,7 @@ function Checkout() {
             return
         }
 
+        const transactionTimestamp = Date.now();
         const total = cart.map((item) => item.price * item.count)
                         .reduce((accu, curr) => accu + curr, 0);
         const products = cart.map((item) => ({
@@ -57,7 +58,8 @@ function Checkout() {
             customer_name: customer.name,
             customer_email: customer.email,
             products: products,
-            total: total
+            total: total,
+            transaction_timestamp: transactionTimestamp
         };
 
         const transactionSnapshot = await addDoc(transactionCollection, transaction);

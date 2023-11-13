@@ -53,7 +53,8 @@ const OrderStatus = () => {
                 customer_name: data.customer_name,
                 customer_email: data.customer_email,
                 products: products,
-                total: data.total
+                total: data.total,
+                transaction_timestamp: data.transaction_timestamp
             };
             setTransaction(transaction);
             setSearchParams({transaction_id: transactionId}, {replace: true});
@@ -85,7 +86,8 @@ const OrderStatus = () => {
                     {transaction && (
                         <>
                             <div className="transaction-status">
-                                <Item label="Transaction ID" value={transaction.id} />
+                                <Item label="ID Transaksi" value={transaction.id} />
+                                <Item label="Tanggal Transaksi" value={new Date(transaction.transaction_timestamp).toLocaleString()} />
                                 <Item label="Customer Name" value={transaction.customer_name} />
                                 <Item label="Customer Email" value={transaction.customer_email} />
                                 <Item label="Status" value={statusMapping(transaction.status)} />
