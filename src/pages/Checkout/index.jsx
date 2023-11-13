@@ -89,31 +89,31 @@ function Checkout() {
             })
         }).then((res) => res.json())
 
-        if(response && response.status === 'success') {
-            await localStorage.removeItem('cart')
-            
-            // midtrans snap start here
-            setSnapShow(true);
-            snapEmbed(response.data.snap_token, 'snap-container', {
-                onSuccess: function (result) {
-                    console.log('success', result);
-                    navigate(`/order-status?transaction_id=${transactionId}`)
-                    setSnapShow(false);
-                },
-                onPending: function(result){
-                    console.log('pending', result);
-                    navigate(`/order-status?transaction_id=${transactionId}`)
-                    setSnapShow(false)
-                },
-                onClose: function () {
-                    navigate(`/order-status?transaction_id=${transactionId}`)
-                    setSnapShow(false)
-                }
-            });
-            // midtrans snap end here
-        } else if(response && response.status === 'error') {
-            alert(response.errors.map((msg) => msg.msg).join(', '))
+        if(!response || response.status != 'success') {
+            return alert(response.errors.map((msg) => msg.msg).join(', '))
         }
+
+        await localStorage.removeItem('cart')
+
+        // midtrans snap start here
+        setSnapShow(true);
+        snapEmbed(response.token, 'snap-container', {
+            onSuccess: function (result) {
+                console.log('success', result);
+                navigate(`/order-status?transaction_id=${transactionId}`)
+                setSnapShow(false);
+            },
+            onPending: function(result){
+                console.log('pending', result);
+                navigate(`/order-status?transaction_id=${transactionId}`)
+                setSnapShow(false)
+            },
+            onClose: function () {
+                navigate(`/order-status?transaction_id=${transactionId}`)
+                setSnapShow(false)
+            }
+        });
+        // midtrans snap end here
     }
 
     useEffect(() => {
