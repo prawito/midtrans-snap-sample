@@ -6,9 +6,10 @@ import { Input } from "../../components/Input";
 import { Layout } from "../../components/Layout";
 import { Product } from "./Product";
 import { numberToRupiah } from "../../utils/number-to-rupiah";
-import { API_URL } from "../../utils/const";
 import './checkout.css';
 import useSnap from "../../hooks/useSnap";
+import { transactionCollection } from '../../utils/firebase';
+import { addDoc } from 'firebase/firestore/lite';
 
 function Checkout() {
     const navigate = useNavigate();
@@ -43,24 +44,24 @@ function Checkout() {
             return
         }
 
-        const response = await fetch(`${API_URL}/transactions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                customer_name: customer.name,
-                customer_email: customer.email,
-                products: cart.map((item) => ({
-                    id: item.id,
-                    quantity: item.count
-                }))
-            })
-        }).then((res) => res.json())
-        
-        if(response && response.status === 'success') {
+        const total = cart.map((item) => item.price * item.count)
+                        .reduce((accu, curr) => accu + curr, 0);
+        const products = cart.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.count
+        }));
+        const transaction = {
+            customer_name: customer.name,
+            customer_email: customer.email,
+            products: products,
+            total: total
+        };
+
+        const response = await addDoc(transactionCollection, transaction);
+        if (response.id) {
             await localStorage.removeItem('cart')
-            // navigate(`/order-status?transaction_id=${response.data.id}`)
             
             // midtrans snap start here
             setSnapShow(true);
@@ -81,8 +82,8 @@ function Checkout() {
                 }
             });
             // midtrans snap end here
-        } else if(response && response.status === 'error') {
-            alert(response.errors.map((msg) => msg.msg).join(', '))
+        } else {
+            alert("Error")
         }
     }
 

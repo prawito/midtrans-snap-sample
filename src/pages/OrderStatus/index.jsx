@@ -7,11 +7,12 @@ import { Item } from "./Item";
 import { ProductItem } from "./ProductItem";
 import './order-status.css'
 import { useEffect } from "react";
-import { API_URL } from "../../utils/const";
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useCallback } from "react";
 import { Pay } from "./Pay";
+import { firebaseDB } from '../../utils/firebase';
+import { getDoc, doc } from 'firebase/firestore/lite';
 
 // mapping order status to readable text
 const statusMapping = (status) => {
@@ -37,10 +38,24 @@ const OrderStatus = () => {
     
     const getTransactionDetail = useCallback(async (transactionId) => {
         if(!transactionId) return alert('Transaction ID harus diisi');
-        const response = await fetch(`${API_URL}/transactions/${transactionId}`);
-        const res = await response.json();
-        if(res.data) {
-            setTransaction(res.data);
+        const transactionRef = doc(firebaseDB, "transactions", transactionId);
+        const transactionSnapshot = await getDoc(transactionRef);
+        const data = transactionSnapshot.data();
+        if (data) {
+            const products = data.products.map((item) => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+            }));
+            const transaction = {
+                id: transactionId,
+                customer_name: data.customer_name,
+                customer_email: data.customer_email,
+                products: products,
+                total: data.total
+            };
+            setTransaction(transaction);
             setSearchParams({transaction_id: transactionId}, {replace: true});
             setEmptyMessage('');
         } else {
@@ -58,8 +73,6 @@ const OrderStatus = () => {
             setEmptyMessage('Belum ada transaksi yang dicari, silahkan masukkan ID Transaksi');
         }
     }, [getTransactionDetail, searchParams]);
-
-    console.log(snapShow)
 
     return (
         <Layout title="Status Pesanan" onBack={() => navigate('/', {replace: true})} full={snapShow} noHeader={snapShow}>

@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { ItemProduct } from "./ItemProduct";
 import { FloatingCheckout } from "./FloatingCheckout";
 import './home.css';
-import { API_URL } from "../../utils/const";
+import { productCollection } from '../../utils/firebase';
+import { getDocs } from 'firebase/firestore/lite';
 import { useCallback } from "react";
 
 function Home() {
@@ -18,21 +18,24 @@ function Home() {
     }, [])
 
     const getProducts = useCallback(async () => {
-      const response = await fetch(`${API_URL}/products`);
-      const {data} = await response.json();
-      
+      const productSnapshot = await getDocs(productCollection);
       const cart = await getCartFromLocalStorage();
-      const product = data.map((item) => {
-        const productItem = cart.find((product) => product.id === item.id);
-        if(productItem) {
-          return {
-            ...item,
-            count: productItem.count
-          }
+      const products = productSnapshot.docs.map((item) => {
+        let data = item.data();
+        const itemFoundInCart = cart.find((product) => product.id === item.id);
+        let qtySelected = 0;
+        if(itemFoundInCart) {
+          qtySelected = itemFoundInCart.count;
         }
-        return item;
+        return {
+          id: item.id,
+          name: data.name,
+          price: data.price,
+          image: data.image,
+          count: qtySelected
+        }
       })
-      setProducts(product);
+      setProducts(products);
   }, [getCartFromLocalStorage])
 
     useEffect(() => {
