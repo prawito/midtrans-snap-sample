@@ -39,7 +39,13 @@ const OrderStatus = () => {
     const getTransactionDetail = useCallback(async (transactionId) => {
         if(!transactionId) return alert('Transaction ID harus diisi');
         const transactionRef = doc(firebaseDB, "transactions", transactionId);
-        const transactionSnapshot = await getDoc(transactionRef);
+        var transactionSnapshot = null;
+        try {
+            transactionSnapshot = await getDoc(transactionRef);
+        } catch ({ name, message }) {
+            return alert(message)
+        }
+
         const data = transactionSnapshot.data();
         if (data) {
             const products = data.products.map((item) => ({

@@ -9,8 +9,8 @@ import { numberToRupiah } from "../../utils/number-to-rupiah";
 import './checkout.css';
 import useSnap from "../../hooks/useSnap";
 import { transactionCollection } from '../../utils/firebase';
-import { addDoc, FieldValue } from 'firebase/firestore/lite';
-import { MIDTRANS_API_URL, MIDTRANS_SERVER_AUTHORIZATION } from '../../utils/const';
+import { addDoc } from 'firebase/firestore/lite';
+import { BACKEND_API_URL, MIDTRANS_API_URL, MIDTRANS_SERVER_AUTHORIZATION } from '../../utils/const';
 
 function Checkout() {
     const navigate = useNavigate();
@@ -62,10 +62,13 @@ function Checkout() {
             transaction_timestamp: transactionTimestamp
         };
 
-        const transactionSnapshot = await addDoc(transactionCollection, transaction);
-        if (!transactionSnapshot || !transactionSnapshot.id) {
-            return alert("Error")
+        var transactionSnapshot = null 
+        try {
+            transactionSnapshot = await addDoc(transactionCollection, transaction);
+        } catch ({ name, message }) {
+            return alert(message)
         }
+
         const transactionId = transactionSnapshot.id
 
         const midtransResponse = await fetch(`${MIDTRANS_API_URL}/snap/v1/transactions`, {

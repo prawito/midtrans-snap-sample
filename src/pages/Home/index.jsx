@@ -18,7 +18,13 @@ function Home() {
     }, [])
 
     const getProducts = useCallback(async () => {
-      const productSnapshot = await getDocs(productCollection);
+      var productSnapshot = null
+      try {
+        productSnapshot = await getDocs(productCollection);
+      } catch ({ name, message }) {
+        return alert(message)
+      }
+
       const cart = await getCartFromLocalStorage();
       const products = productSnapshot.docs.map((item) => {
         let data = item.data();
