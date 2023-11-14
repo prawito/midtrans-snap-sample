@@ -10,7 +10,7 @@ import './checkout.css';
 import useSnap from "../../hooks/useSnap";
 import { transactionCollection } from '../../utils/firebase';
 import { addDoc } from 'firebase/firestore/lite';
-import { BACKEND_API_URL, MIDTRANS_API_URL, MIDTRANS_SERVER_AUTHORIZATION } from '../../utils/const';
+import { FIREBASE_FN_URL } from '../../utils/const';
 
 function Checkout() {
     const navigate = useNavigate();
@@ -71,38 +71,36 @@ function Checkout() {
 
         const transactionId = transactionSnapshot.id
 
-        const midtransResponse = await fetch(`${MIDTRANS_API_URL}/snap/v1/transactions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Authorization': MIDTRANS_SERVER_AUTHORIZATION,
+        const chargeRequestBody = JSON.stringify({
+            transaction_details: {
+                order_id: transactionId,
+                gross_amount: total
             },
-            body: JSON.stringify({
-                transaction_details: {
-                    order_id: transactionId,
-                    gross_amount: total
-                },
-                credit_card: {
-                    secure: "true"
-                },
-                customer_details: {
-                    first_name: customer.name,
-                    email: customer.email
-                },
-                item_details: products
-            })
+            credit_card: {
+                secure: "true"
+            },
+            customer_details: {
+                first_name: customer.name,
+                email: customer.email
+            },
+            item_details: products
+        });
+        console.log(chargeRequestBody)
+        const chargeResponse = await fetch(`${FIREBASE_FN_URL}/charge`, {
+            method: 'POST',
+            body: chargeRequestBody
         }).then((res) => res.json())
 
-        if(!response || response.status != 'success') {
-            return alert(response.errors.map((msg) => msg.msg).join(', '))
+        if(!chargeResponse || chargeResponse.error_messages) {
+            console.error(chargeResponse)
+            return alert(chargeResponse.error_messages.join(', '))
         }
 
         await localStorage.removeItem('cart')
 
         // midtrans snap start here
         setSnapShow(true);
-        snapEmbed(response.token, 'snap-container', {
+        snapEmbed(chargeResponse.token, 'snap-container', {
             onSuccess: function (result) {
                 console.log('success', result);
                 navigate(`/order-status?transaction_id=${transactionId}`)

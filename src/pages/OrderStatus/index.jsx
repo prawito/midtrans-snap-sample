@@ -17,11 +17,11 @@ import { getDoc, doc } from 'firebase/firestore/lite';
 // mapping order status to readable text
 const statusMapping = (status) => {
     switch(status) {
-        case 'PAYMENT_PENDING':
+        case 'pending':
             return 'Menunggu Pembayaran';
-        case 'PAID':
+        case 'settlement':
             return 'Pembayaran Berhasil';
-        case 'CANCELED':
+        case 'canceled':
             return 'Pesanan Dibatalkan';
         default:
             return 'Menunggu Pembayaran';
@@ -47,6 +47,7 @@ const OrderStatus = () => {
         }
 
         const data = transactionSnapshot.data();
+        
         if (data) {
             const products = data.products.map((item) => ({
                 id: item.id,
@@ -60,7 +61,9 @@ const OrderStatus = () => {
                 customer_email: data.customer_email,
                 products: products,
                 total: data.total,
-                transaction_timestamp: data.transaction_timestamp
+                transaction_timestamp: data.transaction_timestamp,
+                payment_method: data.payment_method,
+                status: data.status
             };
             setTransaction(transaction);
             setSearchParams({transaction_id: transactionId}, {replace: true});
@@ -100,7 +103,7 @@ const OrderStatus = () => {
                                 {transaction.payment_method && (
                                     <Item label="Payment Method" value={transaction.payment_method} />
                                 )}
-                                {transaction.status === 'PENDING_PAYMENT' && (
+                                {transaction.status === 'pending' && (
                                     <Pay transaction={transaction} onPayChange={(value) => setSnapShow(value)} />
                                 )}
                             </div>

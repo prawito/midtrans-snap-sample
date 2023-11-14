@@ -1,6 +1,6 @@
 export const MIDTRANS_API_URL = import.meta.env.VITE_MIDTRANS_API_URL;
 export const MIDTRANS_CLIENT_ID = import.meta.env.VITE_MIDTRANS_CLIENT_ID;
-export const MIDTRANS_SERVER_AUTHORIZATION = import.meta.env.VITE_MIDTRANS_SERVER_AUTHORIZATION;
+export const FIREBASE_FN_URL = import.meta.env.VITE_FIREBASE_FN_URL;
 export const FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
 export const FIREBASE_AUTH_DOMAIN = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 export const FIREBASE_DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL;
