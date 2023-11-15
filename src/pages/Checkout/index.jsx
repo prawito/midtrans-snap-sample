@@ -10,7 +10,7 @@ import './checkout.css';
 import useSnap from "../../hooks/useSnap";
 import { transactionCollection } from '../../utils/firebase';
 import { addDoc } from 'firebase/firestore/lite';
-import { FIREBASE_FN_URL } from '../../utils/const';
+import { FIREBASE_FN_CHARGE_URL } from '../../utils/const';
 
 function Checkout() {
     const navigate = useNavigate();
@@ -86,7 +86,7 @@ function Checkout() {
             item_details: products
         });
         console.log(chargeRequestBody)
-        const chargeResponse = await fetch(`${FIREBASE_FN_URL}/charge`, {
+        const chargeResponse = await fetch(`${FIREBASE_FN_CHARGE_URL}`, {
             method: 'POST',
             body: chargeRequestBody
         }).then((res) => res.json())
