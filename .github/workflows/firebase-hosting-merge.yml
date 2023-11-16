@@ -2,7 +2,7 @@
 # https://github.com/firebase/firebase-tools
 
 name: Deploy to Firebase Hosting on merge
-'on':
+"on":
   push:
     branches:
       - main
@@ -11,9 +11,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16" # Specify your Node.js version
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Build with Vite
+      - name: Build
+        run: npm run build
+        env:
+          # Set environment variables from GitHub Secrets
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_MIDTRANS_API_URL: ${{ secrets.VITE_MIDTRANS_API_URL }}
+          VITE_MIDTRANS_CLIENT_ID: ${{ secrets.VITE_MIDTRANS_CLIENT_ID }}
+      # Deploy to Firebase
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOKO_ONLINE_90918 }}'
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOKO_ONLINE_90918 }}"
           channelId: live
           projectId: toko-online-90918
