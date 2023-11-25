@@ -57,8 +57,6 @@ function Checkout() {
       await localStorage.removeItem("cart");
       setSnapShow(true);
 
-      console.log("popup");
-
       snapEmbed(data.data.snap_token, "snap-container");
       // snapPopup(data.data.snap_token);
       // snapRedirect(data.data.snap_redirect_url);
